@@ -317,7 +317,6 @@
 						button,
 						buttons,
 						name,
-						zoom_img_ref,
 						len,
 						k;
 
@@ -354,12 +353,8 @@
 						button = buttons[k];
 						name = button.t + '-' + button.s;
 
-						zoom_img_ref = document.createElement('img');
-						zoom_img_ref.src = '/a/js/zoomify/zoom-' + name + '.png';
-
 						zoom_control_refs[name] = document.createElement('div');
-						zoom_control_refs[name].appendChild(zoom_img_ref);
-						zoom_control_refs[name].className = 'zoom-' + button.t;
+						zoom_control_refs[name].className = 'zoom-control zoom-' + button.t + ' zoom-' + button.s;
 
 						if (button.t === 'in') {
 							if (button.s === 'on') {
@@ -395,20 +390,22 @@
 						width = img_orig_width;
 						height = img_orig_height;
 
-						zoom_levels.unshift(width);
+						zoom_levels[zoom_levels.length] = width;
 
 						while (width > div_width || height > div_height) {
 							width = (width * 0.75);
 							height = (height * 0.75);
-							zoom_levels.unshift(Math.round(width));
+							zoom_levels[zoom_levels.length] = Math.round(width);
 						}
+
+						zoom_levels.reverse(); // Yep IE5.0 does not support unshift... but I do wonder if a single reverse() is quicker than inserting at the beginning of the array.
 
 					//--------------------------------------------------
 					// Mobile phone, over zoom
 
 						if (parseInt(div_border, 10) === 5) { // img width on webkit will return width before CSS is applied
-							zoom_levels.push(Math.round(img_orig_width * 1.75));
-							zoom_levels.push(Math.round(img_orig_width * 3));
+							zoom_levels[zoom_levels.length] = Math.round(img_orig_width * 1.75);
+							zoom_levels[zoom_levels.length] = Math.round(img_orig_width * 3);
 						}
 
 					//--------------------------------------------------
