@@ -1,7 +1,7 @@
 /*******************************************************************************************
  * zoomify
  * Written by Craig Francis
- * Absolutly minimal version of GSIV to work with touch screens and very slow processors.
+ * Absolutely minimal version of GSIV to work with touch screens and very slow processors.
 ********************************************************************************************
 
 /*global window, document, setTimeout, getComputedStyle */
