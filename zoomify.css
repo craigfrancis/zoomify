@@ -1,0 +1,44 @@
+
+	#image-zoom-wrapper {
+		text-align: left;
+		width: 800px;
+		height: 400px;
+		overflow: auto;
+		margin: 10px auto;
+		border: 1px solid #000;
+		background: #AAA url("./loader.gif") no-repeat 50% 50%;
+		-moz-user-select: none;
+		-khtml-user-select: none;
+		-webkit-user-select: none;
+		user-select: none;
+	}
+
+	#image-zoom-wrapper div.zoom-in,
+	#image-zoom-wrapper div.zoom-out {
+		position: absolute;
+		left: 10px;
+		top: 10px;
+	}
+
+	#image-zoom-wrapper div.zoom-out {
+		top: 46px;
+	}
+
+	@media(max-device-width: 480px) {
+
+		#image-zoom-wrapper {
+			border-width: 5px;
+		}
+
+		#image-zoom-wrapper div.zoom-in img,
+		#image-zoom-wrapper div.zoom-out img {
+			width: 104px;
+		}
+
+		#image-zoom-wrapper div.zoom-out {
+			right: 10px;
+			left: auto;
+			top: 10px;
+		}
+
+	}
