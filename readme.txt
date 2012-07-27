@@ -11,7 +11,7 @@ To view the demo:
 
 To use as a sub-module:
 
-	git submodule add https://github.com/craigfrancis/zoomify.git public/a/js/zoomify
+	git submodule add https://github.com/craigfrancis/zoomify.git ./path
 
 --------------------------------------------------
 
