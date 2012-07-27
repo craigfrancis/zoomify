@@ -16,7 +16,7 @@ GSIV
 
 Zoomify
 	http://www.zoomify.com/
-	Where the origional idea came from, but also has issues (and not open source).
+	Original idea came from, but also has issues (and not open source).
 
 ShiftZoom
 	http://www.netzgesta.de/shiftzoom/
@@ -24,4 +24,4 @@ ShiftZoom
 
 jQuery UI
 	http://jqueryui.com/demos/draggable/
-	Fairly low level draggable support (not a complete solution), but still adds too much.
+	Fairly basic draggable support (not complete solution - and adds too much).
