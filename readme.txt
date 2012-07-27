@@ -5,6 +5,10 @@ This code is not intended to be a final solution that you include in your projec
 
 --------------------------------------------------
 
+To view the demo:
+
+	http://craigfrancis.github.com/zoomify/
+
 To use as a sub-module:
 
 	git submodule add https://github.com/craigfrancis/zoomify.git public/a/js/zoomify
