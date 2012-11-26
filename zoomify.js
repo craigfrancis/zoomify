@@ -35,6 +35,17 @@
 			html_ref = null;
 
 	//--------------------------------------------------
+	// IE9 Bug ... if loading an iframe which is then
+	// moved in the DOM (as done in lightboxMe, line 51),
+	// then IE looses the reference and decides to do
+	// an early garbage collection:
+	// http://stackoverflow.com/q/8389261
+
+		if (typeof(Math) === 'undefined') {
+			return false; // No need to window.reload, as IE9 will reload the page anyway.
+		}
+
+	//--------------------------------------------------
 	// Zooming
 
 		function image_zoom(change) {
