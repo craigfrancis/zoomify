@@ -95,7 +95,7 @@
 			// New width
 
 				new_zoom_width = zoom_levels[new_zoom];
-				new_zoom_height = (zoom_levels[new_zoom] * (img_orig_width / img_orig_height));
+				new_zoom_height = (zoom_levels[new_zoom] * (img_orig_height / img_orig_width));
 
 				img_ref.width = new_zoom_width;
 				img_ref.height = new_zoom_height;
