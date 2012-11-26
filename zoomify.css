@@ -1,5 +1,6 @@
 
 	#image-zoom-wrapper {
+		position: relative;
 		text-align: left;
 		width: 800px;
 		height: 400px;
@@ -11,6 +12,16 @@
 		-khtml-user-select: none;
 		-webkit-user-select: none;
 		user-select: none;
+	}
+
+	.js-enabled #image-zoom-wrapper {
+		overflow: hidden;
+		position: relative;
+	}
+
+	.js-enabled #image-zoom-wrapper #image-zoom {
+		visibility: hidden;
+		position: relative;
 	}
 
 	#image-zoom-wrapper div.zoom-control {

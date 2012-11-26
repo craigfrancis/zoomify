@@ -31,7 +31,8 @@
 			zoom_levels = [],
 			zoom_level_count = [],
 			click_last = 0,
-			origin = null;
+			origin = null,
+			html_ref = null;
 
 	//--------------------------------------------------
 	// Zooming
@@ -82,10 +83,11 @@
 			//--------------------------------------------------
 			// New width
 
-				img_ref.style.width = zoom_levels[new_zoom] + 'px';
+				new_zoom_width = zoom_levels[new_zoom];
+				new_zoom_height = (zoom_levels[new_zoom] * (img_orig_width / img_orig_height));
 
-				new_zoom_width = img_ref.width;
-				new_zoom_height = img_ref.height;
+				img_ref.width = new_zoom_width;
+				img_ref.height = new_zoom_height;
 
 			//--------------------------------------------------
 			// Update position
@@ -108,7 +110,7 @@
 				img_zoom_height = new_zoom_height;
 
 				img_ref.style.left = img_current_left + 'px';
-				img_ref.style.top = img_current_top + 'px';
+				img_ref.style.top  = img_current_top + 'px';
 
 		}
 
@@ -268,32 +270,10 @@
 	//--------------------------------------------------
 	// Default styles for JS enabled version
 
-		function css_rule_add(css_rule) {
-
-			var style_element,
-				head_ref;
-
-			style_element = document.createElement('style');
-
-			if (style_element.tagName === 'style') { // HTML mode converts tag to upper case
-
-				style_element.setAttribute('type', 'text/css');
-				style_element.appendChild(document.createTextNode(css_rule));
-
-				head_ref = document.getElementsByTagName('head');
-				if (head_ref[0]) {
-					head_ref[0].appendChild(style_element);
-				}
-
-			} else {
-
-				document.write('<style type="text\/css"> ' + css_rule + ' <\/style>'); // For older browsers (IE6)
-
-			}
-
+		html_ref = document.getElementsByTagName('html');
+		if (html_ref[0]) {
+			html_ref[0].className = html_ref[0].className + ' js-enabled';
 		}
-
-		css_rule_add('#image-zoom-wrapper {overflow: hidden; position: relative;} #image-zoom {visibility: hidden; position: relative;}');
 
 	//--------------------------------------------------
 	// On load
