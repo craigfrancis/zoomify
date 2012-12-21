@@ -410,9 +410,8 @@
 				// Make visible
 
 					img_ref.style.visibility = 'visible';
-					img_ref.style.cursor = 'move';
-
-					div_ref.style.backgroundImage = 'none';
+					
+					div_ref.className = div_ref.className + ' js-active';
 
 				//--------------------------------------------------
 				// Add events

@@ -14,6 +14,11 @@
 		user-select: none;
 	}
 
+	#image-zoom-wrapper.js-active {
+		cursor: move;
+		background-image: none;
+	}
+
 	.js-enabled #image-zoom-wrapper {
 		overflow: hidden;
 		position: relative;
