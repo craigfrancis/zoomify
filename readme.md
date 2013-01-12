@@ -1,9 +1,7 @@
 
 Absolutely minimal version of GSIV to work with touch screens and very slow processors.
 
-To view the demo:
-
-[http://craigfrancis.github.com/zoomify/](http://craigfrancis.github.com/zoomify/)
+To view the demo: [http://craigfrancis.github.com/zoomify/](http://craigfrancis.github.com/zoomify/)
 
 This code is not intended to be a final solution that you include in your project, it is intended to create a basic version that you need to read though, understand and customise to your particular needs.
 
