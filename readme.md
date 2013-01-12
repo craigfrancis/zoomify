@@ -7,7 +7,7 @@ This code is not intended to be a final solution that you include in your projec
 
 To view the demo:
 
-	[http://craigfrancis.github.com/zoomify/](http://craigfrancis.github.com/zoomify/)
+[http://craigfrancis.github.com/zoomify/](http://craigfrancis.github.com/zoomify/)
 
 To use as a sub-module:
 
