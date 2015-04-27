@@ -29,6 +29,10 @@
 		position: relative;
 	}
 
+	#image-zoom-wrapper div {
+		padding: 0;
+	}
+
 	#image-zoom-wrapper div.zoom-control {
 		width: 26px;
 		height: 26px;
