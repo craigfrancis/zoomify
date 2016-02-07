@@ -279,6 +279,37 @@
 		}
 
 	//--------------------------------------------------
+	// Keyboard
+
+		function keyboard_event(e) {
+
+			var keyCode = (e ? e.which : window.event.keyCode);
+
+			if (keyCode === 37 || keyCode === 39) { // left or right
+
+				img_current_left = (img_current_left + (keyCode === 39 ? 50 : -50));
+
+				image_move_update();
+
+			} else if (keyCode === 38 || keyCode === 40) { // up or down
+
+				img_current_top = (img_current_top + (keyCode === 40 ? 50 : -50));
+
+				image_move_update();
+
+			} else if (keyCode === 107 || keyCode === 187 || keyCode === 61) { // + or = (http://www.javascripter.net/faq/keycodes.htm)
+
+				image_zoom_in();
+
+			} else if (keyCode === 109 || keyCode === 189) { // - or _
+
+				image_zoom_out();
+
+			}
+
+		}
+
+	//--------------------------------------------------
 	// Default styles for JS enabled version
 
 		html_ref = document.getElementsByTagName('html');
@@ -410,7 +441,7 @@
 				// Make visible
 
 					img_ref.style.visibility = 'visible';
-					
+
 					div_ref.className = div_ref.className + ' js-active';
 
 				//--------------------------------------------------
@@ -430,33 +461,7 @@
 
 					}
 
-					document.onkeyup = function(e) {
-
-						var keyCode = (e ? e.which : window.event.keyCode);
-
-						if (keyCode === 37 || keyCode === 39) { // left or right
-
-							img_current_left = (img_current_left + (keyCode === 39 ? 50 : -50));
-
-							image_move_update();
-
-						} else if (keyCode === 38 || keyCode === 40) { // up or down
-
-							img_current_top = (img_current_top + (keyCode === 40 ? 50 : -50));
-
-							image_move_update();
-
-						} else if (keyCode === 107 || keyCode === 187 || keyCode === 61) { // + or = (http://www.javascripter.net/faq/keycodes.htm)
-
-							image_zoom_in();
-
-						} else if (keyCode === 109 || keyCode === 189) { // - or _
-
-							image_zoom_out();
-
-						}
-
-					};
+					document.onkeyup = keyboard_event;
 
 			}
 
