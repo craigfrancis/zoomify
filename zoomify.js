@@ -46,6 +46,32 @@
 		}
 
 	//--------------------------------------------------
+	// Add event
+	// http://dustindiaz.com/rock-solid-addevent
+
+		function addEvent(obj, type, fn) {
+			if (obj.addEventListener) {
+				obj.addEventListener(type, fn, false);
+			} else if (obj.attachEvent) {
+				obj['e'+type+fn] = fn;
+				obj[type+fn] = function() { obj['e'+type+fn](window.event); }
+				obj.attachEvent('on'+type, obj[type+fn]);
+			} else {
+				obj['on'+type] = obj['e'+type+fn];
+			}
+		}
+
+		function removeEvent(obj, type, fn) {
+			if (obj.removeEventListener) {
+				obj.removeEventListener(type, fn, false);
+			} else if (obj.detachEvent) {
+				obj.detachEvent('on'+type, obj[type+fn]);
+			} else {
+				obj['on'+type] = null;
+			}
+		}
+
+	//--------------------------------------------------
 	// Zooming
 
 		function image_zoom(change) {
@@ -320,7 +346,7 @@
 	//--------------------------------------------------
 	// On load
 
-		window.onload = function() { // Not DOM ready, as we need the image to have loaded
+		function init() {
 
 			div_ref = document.getElementById('image-zoom-wrapper');
 			img_ref = document.getElementById('image-zoom');
@@ -465,6 +491,8 @@
 
 			}
 
-		};
+		}
+
+		addEvent(window, 'load', init); // Not DOM ready, as we need the image to have loaded
 
 }());
