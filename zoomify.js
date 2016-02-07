@@ -473,21 +473,14 @@
 				//--------------------------------------------------
 				// Add events
 
-					img_ref.onmousedown = image_move_start;
-					img_ref.ontouchstart = image_move_start;
+					wheel = 'onwheel' in document.createElement('div') ? 'wheel' : // Modern browsers
+							document.onmousewheel !== undefined ? 'mousewheel' : // Webkit and IE support
+							'DOMMouseScroll'; // Older Firefox
 
-					if (div_ref.addEventListener) {
-
-						div_ref.addEventListener('DOMMouseScroll', scroll_event, false);
-						div_ref.addEventListener('mousewheel', scroll_event, false);
-
-					} else if (div_ref.attachEvent) {
-
-						div_ref.attachEvent('onmousewheel', scroll_event);
-
-					}
-
-					document.onkeyup = keyboard_event;
+					addEvent(div_ref, wheel, scroll_event);
+					addEvent(div_ref, 'mousedown', image_move_start);
+					addEvent(div_ref, 'touchstart', image_move_start);
+					addEvent(document, 'keyup', keyboard_event);
 
 			}
 
