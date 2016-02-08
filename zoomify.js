@@ -242,6 +242,9 @@
 
 		}
 
+		function image_zoom_event(e) {
+		}
+
 		function image_event_start(e) {
 
 			//--------------------------------------------------
