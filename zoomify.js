@@ -246,7 +246,7 @@
 
 		}
 
-		function image_move_start(e) {
+		function image_event_start(e) {
 
 			//--------------------------------------------------
 			// Event
@@ -479,8 +479,8 @@
 							'DOMMouseScroll'; // Older Firefox
 
 					addEventListener(div_ref, wheel, scroll_event);
-					addEventListener(div_ref, 'mousedown', image_move_start);
-					addEventListener(div_ref, 'touchstart', image_move_start);
+					addEventListener(div_ref, 'mousedown', image_event_start);
+					addEventListener(div_ref, 'touchstart', image_event_start);
 					addEventListener(document, 'keyup', keyboard_event);
 
 			}
