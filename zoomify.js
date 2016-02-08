@@ -164,8 +164,6 @@
 			//--------------------------------------------------
 			// Event
 
-				e = e || window.event;
-
 				var wheelData = (e.detail ? e.detail * -1 : e.wheelDelta / 40);
 
 				image_zoom(wheelData > 0 ? 1 : -1);
@@ -224,8 +222,6 @@
 			//--------------------------------------------------
 			// Calculations
 
-				e = e || window.event;
-
 				var currentPos = event_coords(e);
 
 				img_current_left = (img_start_left + (currentPos[0] - origin[0]));
@@ -250,8 +246,6 @@
 
 			//--------------------------------------------------
 			// Event
-
-				e = e || window.event;
 
 				if (e.preventDefault) {
 					e.preventDefault();
