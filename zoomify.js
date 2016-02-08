@@ -253,14 +253,22 @@
 					e.returnValue = false; // IE: http://stackoverflow.com/questions/1000597/
 				}
 
+				var zoom_mode = false;
+
+				if (e.type === 'touchstart') {
+					zoom_mode = (e.touches.length == 2);
+				}
+
 			//--------------------------------------------------
 			// Double tap/click event
 
-				var now = new Date().getTime();
-				if (click_last > (now - 200)) {
-					image_zoom_in();
-				} else {
-					click_last = now;
+				if (!zoom_mode) {
+					var now = new Date().getTime();
+					if (click_last > (now - 200)) {
+						image_zoom_in();
+					} else {
+						click_last = now;
+					}
 				}
 
 			//--------------------------------------------------
@@ -269,22 +277,22 @@
 					// http://www.quirksmode.org/blog/archives/2010/02/the_touch_actio.html
 					// http://www.quirksmode.org/m/tests/drag.html
 
-				if (e.type === 'touchstart') {
+				image_event_end(); // On a zoom, typically 1 finger goes down first (move), and we need to cleanup before starting a 2 finger zoom.
 
-					img_ref.onmousedown = null;
-					img_ref.ontouchmove = image_move_event;
-					img_ref.ontouchend = function() {
-						img_ref.ontouchmove = null;
-						img_ref.ontouchend = null;
-					};
+				if (zoom_mode) {
+
+					addEventListener(img_ref, 'touchmove', image_zoom_event);
+					addEventListener(img_ref, 'touchend', image_event_end);
+
+				} else if (e.type === 'touchstart') {
+
+					addEventListener(img_ref, 'touchmove', image_move_event);
+					addEventListener(img_ref, 'touchend', image_event_end);
 
 				} else {
 
-					document.onmousemove = image_move_event;
-					document.onmouseup = function() {
-						document.onmousemove = null;
-						document.onmouseup = null;
-					};
+					addEventListener(document, 'mousemove', image_move_event);
+					addEventListener(document, 'mouseup', image_event_end);
 
 				}
 
@@ -295,6 +303,17 @@
 				img_start_top = img_current_top;
 
 				origin = event_coords(e);
+
+		}
+
+		function image_event_end() {
+
+			removeEvent(img_ref, 'touchmove', image_zoom_event);
+			removeEvent(img_ref, 'touchmove', image_move_event);
+			removeEvent(document, 'mousemove', image_move_event);
+
+			removeEvent(img_ref, 'touchend', image_event_end);
+			removeEvent(document, 'mouseup', image_event_end);
 
 		}
 
