@@ -49,7 +49,7 @@
 	// Add event
 	// http://dustindiaz.com/rock-solid-addevent
 
-		function addEvent(obj, type, fn) {
+		function addEventListener(obj, type, fn) {
 			if (obj.addEventListener) {
 				obj.addEventListener(type, fn, false);
 			} else if (obj.attachEvent) {
@@ -478,15 +478,15 @@
 							document.onmousewheel !== undefined ? 'mousewheel' : // Webkit and IE support
 							'DOMMouseScroll'; // Older Firefox
 
-					addEvent(div_ref, wheel, scroll_event);
-					addEvent(div_ref, 'mousedown', image_move_start);
-					addEvent(div_ref, 'touchstart', image_move_start);
-					addEvent(document, 'keyup', keyboard_event);
+					addEventListener(div_ref, wheel, scroll_event);
+					addEventListener(div_ref, 'mousedown', image_move_start);
+					addEventListener(div_ref, 'touchstart', image_move_start);
+					addEventListener(document, 'keyup', keyboard_event);
 
 			}
 
 		}
 
-		addEvent(window, 'load', init); // Not DOM ready, as we need the image to have loaded
+		addEventListener(window, 'load', init); // Not DOM ready, as we need the image to have loaded
 
 }());
