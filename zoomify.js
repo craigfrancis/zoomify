@@ -7,32 +7,37 @@
 /*global window, document, setTimeout, getComputedStyle */
 /*jslint white: true */
 
-(function() {
+;(function(document, window, undefined) {
 
-	"use strict";
+	'use strict';
 
 	//--------------------------------------------------
 	// Variables
 
-		var div_ref = null,
+		var html_ref = null,
+			div_ref = null,
 			div_half_width = null,
 			div_half_height = null,
 			img_ref = null,
-			img_orig_width = null,
-			img_orig_height = null,
-			img_zoom_width = null,
-			img_zoom_height = null,
-			img_start_left = null,
-			img_start_top = null,
+			img_original_width = null,
+			img_original_height = null,
+			img_current_width = null,
+			img_current_height = null,
 			img_current_left = null,
 			img_current_top = null,
 			zoom_control_refs = {},
-			zoom_level = 0,
 			zoom_levels = [],
-			zoom_level_count = [],
-			click_last = 0,
-			origin = null,
-			html_ref = null;
+			zoom_level_count = 0,
+			zoom_limit = null,
+			zoom_min_width = null,
+			zoom_max_width = null,
+			zoom_origin_coords = [],
+			zoom_origin_distance = null,
+			zoom_origin_width = null,
+			move_origin_cords = null,
+			move_origin_left = null,
+			move_origin_top = null,
+			click_last = 0;
 
 	//--------------------------------------------------
 	// IE9 Bug ... if loading an iframe which is then
@@ -46,7 +51,7 @@
 		}
 
 	//--------------------------------------------------
-	// Add event
+	// Event listener helpers:
 	// http://dustindiaz.com/rock-solid-addevent
 
 		function addEventListener(obj, type, fn) {
@@ -61,7 +66,7 @@
 			}
 		}
 
-		function removeEvent(obj, type, fn) {
+		function removeEventListener(obj, type, fn) {
 			if (obj.removeEventListener) {
 				obj.removeEventListener(type, fn, false);
 			} else if (obj.detachEvent) {
@@ -71,120 +76,23 @@
 			}
 		}
 
-	//--------------------------------------------------
-	// Zooming
-
-		function image_zoom(change) {
-
-			//--------------------------------------------------
-			// Variables
-
-				var new_zoom,
-					new_zoom_width,
-					new_zoom_height,
-					ratio;
-
-			//--------------------------------------------------
-			// Zoom level
-
-				new_zoom = (zoom_level + change);
-
-				if (new_zoom >= zoom_level_count) {
-					if (new_zoom > zoom_level_count) {
-						div_ref.style.opacity = 0.5;
-						setTimeout(function() {div_ref.style.opacity = 1;}, 150);
-						return;
-					}
-					zoom_control_refs['in-on'].style.display = 'none';
-					zoom_control_refs['in-off'].style.display = 'block';
-				} else {
-					zoom_control_refs['in-on'].style.display = 'block';
-					zoom_control_refs['in-off'].style.display = 'none';
-				}
-
-				if (new_zoom <= 0) {
-					if (new_zoom < 0) {
-						div_ref.style.opacity = 0.5;
-						setTimeout(function() {div_ref.style.opacity = 1;}, 150);
-						return;
-					}
-					zoom_control_refs['out-on'].style.display = 'none';
-					zoom_control_refs['out-off'].style.display = 'block';
-				} else {
-					zoom_control_refs['out-on'].style.display = 'block';
-					zoom_control_refs['out-off'].style.display = 'none';
-				}
-
-				zoom_level = new_zoom;
-
-			//--------------------------------------------------
-			// New width
-
-				new_zoom_width = zoom_levels[new_zoom];
-				new_zoom_height = (zoom_levels[new_zoom] * (img_orig_height / img_orig_width));
-
-				img_ref.width = new_zoom_width;
-				img_ref.height = new_zoom_height;
-
-			//--------------------------------------------------
-			// Update position
-
-				if (img_current_left === null) { // Position in the middle on page load
-
-					img_current_left = (div_half_width - (new_zoom_width  / 2));
-					img_current_top  = (div_half_height - (new_zoom_height / 2));
-
-				} else {
-
-					ratio = (new_zoom_width / img_zoom_width);
-
-					img_current_left = (div_half_width - ((div_half_width - img_current_left) * ratio));
-					img_current_top  = (div_half_height - ((div_half_height - img_current_top)  * ratio));
-
-				}
-
-				img_zoom_width = new_zoom_width;
-				img_zoom_height = new_zoom_height;
-
-				img_ref.style.left = img_current_left + 'px';
-				img_ref.style.top  = img_current_top + 'px';
-
+		function preventDefault(e) {
+			if (e.preventDefault) {
+				e.preventDefault();
+			} else {
+				e.returnValue = false; // IE: http://stackoverflow.com/questions/1000597/
+			}
+			return false;
 		}
 
-		function image_zoom_in() {
-			image_zoom(1);
+		function preventPropagationAndDefault(e) {
+			if (e.stopPropagation) {
+				e.stopPropagation();
+			}
+			return preventDefault(e);
 		}
 
-		function image_zoom_out() {
-			image_zoom(-1);
-		}
-
-		function scroll_event(e) {
-
-			//--------------------------------------------------
-			// Event
-
-				var wheelData = (e.detail ? e.detail * -1 : e.wheelDelta / 40);
-
-				image_zoom(wheelData > 0 ? 1 : -1);
-
-			//--------------------------------------------------
-			// Prevent default
-
-				if (e.preventDefault) {
-					e.preventDefault();
-				} else {
-					e.returnValue = false;
-				}
-
-				return false;
-
-		}
-
-	//--------------------------------------------------
-	// Movement
-
-		function event_coords(e) {
+		function event_move_coords(e) {
 			var coords = [];
 			if (e.touches && e.touches.length) {
 				coords[0] = e.touches[0].clientX;
@@ -196,21 +104,225 @@
 			return coords;
 		}
 
-		function image_move_update() {
+		function event_zoom_coords(e) {
+			var coords = [0, 0];
+			if (e.touches && e.touches.length >= 2) {
+				coords[0] = ((e.touches[0].clientX + e.touches[1].clientX) / 2);
+				coords[1] = ((e.touches[0].clientY + e.touches[1].clientY) / 2);
+			}
+			return coords;
+		}
+
+		function event_zoom_distance(e) { // http://stackoverflow.com/a/11183333/6632
+			var distance = 0;
+			if (e.touches && e.touches.length >= 2) {
+				distance = Math.sqrt(
+					(e.touches[0].clientX-e.touches[1].clientX) * (e.touches[0].clientX-e.touches[1].clientX) +
+					(e.touches[0].clientY-e.touches[1].clientY) * (e.touches[0].clientY-e.touches[1].clientY));
+			}
+			return distance;
+		}
+
+	//--------------------------------------------------
+	// Default styles for JS enabled version
+
+		html_ref = document.getElementsByTagName('html');
+		if (html_ref[0]) {
+			html_ref[0].className = html_ref[0].className + ' js-enabled';
+		}
+
+	//--------------------------------------------------
+	// Zooming
+
+		function image_zoom_update(new_width) {
+
+			//--------------------------------------------------
+			// At width limit
+
+				var new_limit = 0,
+					new_height = 0,
+					ratio = 0;
+
+				if (new_width == zoom_max_width) new_limit = (new_limit | 1);
+				if (new_width == zoom_min_width) new_limit = (new_limit | 2);
+
+			//--------------------------------------------------
+			// Hitting limit flash
+
+				if (new_limit != 0 && new_limit != 3 && new_limit != zoom_limit && zoom_limit !== null) { // At a limit (not both), has just hit that limit, and isn't happening on page load.
+
+					div_ref.style.opacity = 0.5;
+					setTimeout(function() {div_ref.style.opacity = 1;}, 150);
+
+				}
+
+			//--------------------------------------------------
+			// Zoom controls
+
+				if (new_limit != zoom_limit) { // Has changed
+
+					if (new_limit & 1) {
+						zoom_control_refs['in-on'].style.display = 'none';
+						zoom_control_refs['in-off'].style.display = 'block';
+					} else {
+						zoom_control_refs['in-on'].style.display = 'block';
+						zoom_control_refs['in-off'].style.display = 'none';
+					}
+
+					if (new_limit & 2) {
+						zoom_control_refs['out-on'].style.display = 'none';
+						zoom_control_refs['out-off'].style.display = 'block';
+					} else {
+						zoom_control_refs['out-on'].style.display = 'block';
+						zoom_control_refs['out-off'].style.display = 'none';
+					}
+
+					zoom_limit = new_limit;
+
+				} else if (new_limit != 0) { // No limit change, and still at limit.
+
+					return false;
+
+				}
+
+			//--------------------------------------------------
+			// Change
+
+				new_height = ((img_original_height / img_original_width) * new_width);
+
+				if (img_current_left === null) { // Position in the middle (initial page load)
+
+					img_current_left = (div_half_width - (new_width  / 2));
+					img_current_top  = (div_half_height - (new_height / 2));
+
+				} else {
+
+					ratio = (new_width / img_current_width);
+
+					img_current_left = (div_half_width - ((div_half_width - img_current_left) * ratio));
+					img_current_top  = (div_half_height - ((div_half_height - img_current_top)  * ratio));
+
+				}
+
+				img_current_width  = new_width;
+				img_current_height = new_height;
+
+				img_ref.width      = img_current_width;
+				img_ref.height     = img_current_height;
+				img_ref.style.left = img_current_left + 'px';
+				img_ref.style.top  = img_current_top + 'px';
+
+			//--------------------------------------------------
+			// Success
+
+				return true;
+
+		}
+
+		function image_zoom_event(e) {
+
+			//--------------------------------------------------
+			// Calculations
+
+				var new_width = ((event_zoom_distance(e) / zoom_origin_distance) * zoom_origin_width);
+
+				if (new_width < zoom_min_width) new_width = zoom_min_width;
+				if (new_width > zoom_max_width) new_width = zoom_max_width;
+
+			//--------------------------------------------------
+			// Update
+
+				if (image_zoom_update(new_width) === false) { // Hit resize change limit, so reset reference points (i.e. zoom in to limit, keep going, then reverse... it should immediately start scaling again)
+
+					zoom_origin_distance = event_zoom_distance(e);
+					zoom_origin_width = new_width;
+
+				}
+
+			//--------------------------------------------------
+			// Prevent default
+
+				return preventDefault(e);
+
+		}
+
+		function image_zoom_change(change) {
+
+			//--------------------------------------------------
+			// Zoom level
+
+				var current_zoom = 0,
+					new_zoom = null,
+					new_width = null,
+					k = 0;
+
+				for (k = zoom_level_count; k >= 0; k--) {
+					if (zoom_levels[k] <= img_current_width) {
+						current_zoom = k;
+						break;
+					}
+				}
+
+			//--------------------------------------------------
+			// New zoom/width
+
+				new_zoom = (current_zoom + change);
+				if (new_zoom < 0) new_zoom = 0;
+				if (new_zoom > zoom_level_count) new_zoom = zoom_level_count;
+
+				new_width = zoom_levels[new_zoom];
+
+			//--------------------------------------------------
+			// Update position
+
+				image_zoom_update(new_width);
+
+		}
+
+		function image_zoom_in(e) {
+			image_zoom_change(1);
+			return preventPropagationAndDefault(e);
+		}
+
+		function image_zoom_out(e) {
+			image_zoom_change(-1);
+			return preventPropagationAndDefault(e);
+		}
+
+		function scroll_event(e) {
+
+			var wheelData = 0;
+			if (e.wheelDelta) wheelData = e.wheelDelta / -40;
+			if (e.deltaY) wheelData = e.deltaY;
+			if (e.detail) wheelData = e.detail;
+
+			image_zoom_change(wheelData > 0 ? -1 : 1);
+
+			return preventPropagationAndDefault(e);
+
+		}
+
+	//--------------------------------------------------
+	// Move
+
+		function image_move_update(new_left, new_top) {
 
 			//--------------------------------------------------
 			// Boundary check
 
-				var max_left = (div_half_width - img_zoom_width),
-					max_top = (div_half_height - img_zoom_height);
+				var max_left = (div_half_width - img_current_width),
+					max_top = (div_half_height - img_current_height);
 
-				if (img_current_left > div_half_width)  { img_current_left = div_half_width; }
-				if (img_current_top  > div_half_height) { img_current_top  = div_half_height; }
-				if (img_current_left < max_left)        { img_current_left = max_left; }
-				if (img_current_top  < max_top)         { img_current_top  = max_top;  }
+				if (new_left > div_half_width)  { new_left = div_half_width; }
+				if (new_top  > div_half_height) { new_top  = div_half_height; }
+				if (new_left < max_left)        { new_left = max_left; }
+				if (new_top  < max_top)         { new_top  = max_top;  }
 
 			//--------------------------------------------------
-			// Move
+			// Update
+
+				img_current_left = new_left;
+				img_current_top  = new_top;
 
 				img_ref.style.left = img_current_left + 'px';
 				img_ref.style.top  = img_current_top + 'px';
@@ -222,106 +334,110 @@
 			//--------------------------------------------------
 			// Calculations
 
-				var currentPos = event_coords(e);
+				var new_cords = event_move_coords(e),
+					new_left = (move_origin_left + (new_cords[0] - move_origin_cords[0])),
+					new_top = (move_origin_top + (new_cords[1] - move_origin_cords[1]));
 
-				img_current_left = (img_start_left + (currentPos[0] - origin[0]));
-				img_current_top = (img_start_top + (currentPos[1] - origin[1]));
-
-				image_move_update();
+				image_move_update(new_left, new_top);
 
 			//--------------------------------------------------
 			// Prevent default
 
-				if (e.preventDefault) {
-					e.preventDefault();
-				} else {
-					e.returnValue = false;
-				}
-
-				return false;
+				return preventDefault(e);
 
 		}
 
-		function image_zoom_event(e) {
-		}
+	//--------------------------------------------------
+	// Image events
 
 		function image_event_start(e) {
 
 			//--------------------------------------------------
+			// End current events... on zoom, typically 1
+			// finger goes down first (move), and we need to
+			// cleanup before starting a 2 finger zoom.
+
+				image_event_end();
+
+			//--------------------------------------------------
 			// Event
 
-				if (e.preventDefault) {
-					e.preventDefault();
-				} else {
-					e.returnValue = false; // IE: http://stackoverflow.com/questions/1000597/
-				}
+				if (e.type === 'touchstart' && e.touches.length == 2) { // zoom mode
 
-				var zoom_mode = false;
+					//--------------------------------------------------
+					// Starting position
 
-				if (e.type === 'touchstart') {
-					zoom_mode = (e.touches.length == 2);
-				}
+						zoom_origin_coords = event_zoom_coords(e);
+						zoom_origin_distance = event_zoom_distance(e);
+						zoom_origin_width = img_current_width;
 
-			//--------------------------------------------------
-			// Double tap/click event
+					//--------------------------------------------------
+					// Events
 
-				if (!zoom_mode) {
-					var now = new Date().getTime();
-					if (click_last > (now - 200)) {
-						image_zoom_in();
-					} else {
-						click_last = now;
-					}
-				}
-
-			//--------------------------------------------------
-			// Add events
-
-					// http://www.quirksmode.org/blog/archives/2010/02/the_touch_actio.html
-					// http://www.quirksmode.org/m/tests/drag.html
-
-				image_event_end(); // On a zoom, typically 1 finger goes down first (move), and we need to cleanup before starting a 2 finger zoom.
-
-				if (zoom_mode) {
-
-					addEventListener(img_ref, 'touchmove', image_zoom_event);
-					addEventListener(img_ref, 'touchend', image_event_end);
-
-				} else if (e.type === 'touchstart') {
-
-					addEventListener(img_ref, 'touchmove', image_move_event);
-					addEventListener(img_ref, 'touchend', image_event_end);
+						addEventListener(img_ref, 'touchmove', image_zoom_event);
+						addEventListener(img_ref, 'touchend', image_event_end);
 
 				} else {
 
-					addEventListener(document, 'mousemove', image_move_event);
-					addEventListener(document, 'mouseup', image_event_end);
+					//--------------------------------------------------
+					// Double tap/click event
+
+						var now = new Date().getTime();
+						if (click_last > (now - 200)) {
+							image_zoom_in(e);
+						} else {
+							click_last = now;
+						}
+
+					//--------------------------------------------------
+					// Starting position
+
+						move_origin_left = img_current_left;
+						move_origin_top = img_current_top;
+						move_origin_cords = event_move_coords(e);
+
+					//--------------------------------------------------
+					// Events
+
+							// http://www.quirksmode.org/blog/archives/2010/02/the_touch_actio.html
+							// http://www.quirksmode.org/m/tests/drag.html
+
+						if (e.type === 'touchstart') {
+
+							addEventListener(img_ref, 'touchmove', image_move_event);
+							addEventListener(img_ref, 'touchend', image_event_end);
+
+						} else {
+
+							addEventListener(document, 'mousemove', image_move_event);
+							addEventListener(document, 'mouseup', image_event_end);
+
+						}
 
 				}
 
 			//--------------------------------------------------
-			// Record starting position
+			// Prevent default
 
-				img_start_left = img_current_left;
-				img_start_top = img_current_top;
-
-				origin = event_coords(e);
+				if (e.type !== 'touchstart') { // On small touch screens, it is good to be able to use the grey background to scroll the page.
+					return preventDefault(e);
+				}
 
 		}
 
 		function image_event_end() {
 
-			removeEvent(img_ref, 'touchmove', image_zoom_event);
-			removeEvent(img_ref, 'touchmove', image_move_event);
-			removeEvent(document, 'mousemove', image_move_event);
+			removeEventListener(img_ref, 'touchmove', image_zoom_event);
+			removeEventListener(img_ref, 'touchmove', image_move_event);
+			removeEventListener(document, 'mousemove', image_move_event);
 
-			removeEvent(img_ref, 'touchend', image_event_end);
-			removeEvent(document, 'mouseup', image_event_end);
+			removeEventListener(img_ref, 'touchend', image_event_end);
+			removeEventListener(document, 'mouseup', image_event_end);
 
 		}
 
 	//--------------------------------------------------
-	// Keyboard
+	// Keyboard event
 
 		function keyboard_event(e) {
 
@@ -329,34 +445,22 @@
 
 			if (keyCode === 37 || keyCode === 39) { // left or right
 
-				img_current_left = (img_current_left + (keyCode === 39 ? 50 : -50));
-
-				image_move_update();
+				image_move_update((img_current_left + (keyCode === 39 ? 50 : -50)), img_current_top);
 
 			} else if (keyCode === 38 || keyCode === 40) { // up or down
 
-				img_current_top = (img_current_top + (keyCode === 40 ? 50 : -50));
-
-				image_move_update();
+				image_move_update(img_current_left, (img_current_top + (keyCode === 40 ? 50 : -50)));
 
 			} else if (keyCode === 107 || keyCode === 187 || keyCode === 61) { // + or = (http://www.javascripter.net/faq/keycodes.htm)
 
-				image_zoom_in();
+				image_zoom_in(e);
 
 			} else if (keyCode === 109 || keyCode === 189) { // - or _
 
-				image_zoom_out();
+				image_zoom_out(e);
 
 			}
 
-		}
-
-	//--------------------------------------------------
-	// Default styles for JS enabled version
-
-		html_ref = document.getElementsByTagName('html');
-		if (html_ref[0]) {
-			html_ref[0].className = html_ref[0].className + ' js-enabled';
 		}
 
 	//--------------------------------------------------
@@ -372,8 +476,7 @@
 				//--------------------------------------------------
 				// Variables
 
-					var div_border,
-						div_style,
+					var div_style,
 						div_width,
 						div_height,
 						width,
@@ -390,11 +493,9 @@
 
 					try {
 						div_style = getComputedStyle(div_ref, '');
-						div_border = div_style.getPropertyValue('border-top-width');
 						div_half_width = div_style.getPropertyValue('width');
 						div_half_height = div_style.getPropertyValue('height');
 					} catch(e) {
-						div_border = div_ref.currentStyle.borderWidth;
 						div_half_width = div_ref.currentStyle.width;
 						div_half_height = div_ref.currentStyle.height;
 					}
@@ -403,10 +504,10 @@
 					div_half_height = Math.round(parseInt(div_half_height, 10) / 2);
 
 				//--------------------------------------------------
-				// Original size
+				// Original image size
 
-					img_orig_width = img_ref.width;
-					img_orig_height = img_ref.height;
+					img_original_width = img_ref.width;
+					img_original_height = img_ref.height;
 
 				//--------------------------------------------------
 				// Add zoom controls
@@ -422,12 +523,15 @@
 						zoom_control_refs[name].className = 'zoom-control zoom-' + button.t + ' zoom-' + button.s;
 
 						if (button.t === 'in') {
-							if (button.s === 'on') {
-								addEventListener(zoom_control_refs[name], 'mousedown', image_zoom_in); // onclick on iPhone seems to have a more pronounced delay
-							}
+							addEventListener(zoom_control_refs[name], 'mousedown', image_zoom_in);
+							addEventListener(zoom_control_refs[name], 'touchstart', image_zoom_in);
 						} else {
 							if (button.s === 'on') {
 								addEventListener(zoom_control_refs[name], 'mousedown', image_zoom_out);
+								addEventListener(zoom_control_refs[name], 'touchstart', image_zoom_out);
+							} else {
+								addEventListener(zoom_control_refs[name], 'mousedown', preventPropagationAndDefault);
+								addEventListener(zoom_control_refs[name], 'touchstart', preventPropagationAndDefault);
 							}
 						}
 
@@ -437,6 +541,8 @@
 							} catch(err) {
 								zoom_control_refs[name].style.cursor = 'hand'; // Yes, even IE5 support
 							}
+						} else {
+							zoom_control_refs[name].style.cursor = 'auto';
 						}
 
 						div_ref.appendChild(zoom_control_refs[name]);
@@ -444,41 +550,31 @@
 					}
 
 				//--------------------------------------------------
-				// Zoom levels
+				// Zoom
 
-					//--------------------------------------------------
-					// Defaults
+					div_width = (div_half_width * 2);
+					div_height = (div_half_height * 2);
 
-						div_width = (div_half_width * 2);
-						div_height = (div_half_height * 2);
+					width = img_original_width;
+					height = img_original_height;
 
-						width = img_orig_width;
-						height = img_orig_height;
+					zoom_levels[zoom_levels.length] = Math.round(img_original_width * 1.75); // Oversize support
+					zoom_levels[zoom_levels.length] = width;
 
-						zoom_levels[zoom_levels.length] = width;
+					while (width > div_width || height > div_height) {
+						width = (width * 0.75);
+						height = (height * 0.75);
+						zoom_levels[zoom_levels.length] = Math.round(width);
+					}
 
-						while (width > div_width || height > div_height) {
-							width = (width * 0.75);
-							height = (height * 0.75);
-							zoom_levels[zoom_levels.length] = Math.round(width);
-						}
+					zoom_levels.reverse(); // IE5.0 does not support unshift.
 
-						zoom_levels.reverse(); // Yep IE5.0 does not support unshift... but I do wonder if a single reverse() is quicker than inserting at the beginning of the array.
+					zoom_level_count = (zoom_levels.length - 1);
 
-					//--------------------------------------------------
-					// Mobile phone, over zoom
+					zoom_min_width = zoom_levels[0];
+					zoom_max_width = zoom_levels[zoom_level_count];
 
-						if (parseInt(div_border, 10) === 5) { // img width on webkit will return width before CSS is applied
-							zoom_levels[zoom_levels.length] = Math.round(img_orig_width * 1.75);
-							zoom_levels[zoom_levels.length] = Math.round(img_orig_width * 3);
-						}
-
-					//--------------------------------------------------
-					// Set default
-
-						zoom_level_count = (zoom_levels.length - 1);
-
-						image_zoom(0);
+					image_zoom_update(zoom_levels[0]);
 
 				//--------------------------------------------------
 				// Make visible
@@ -505,4 +601,4 @@
 
 		addEventListener(window, 'load', init); // Not DOM ready, as we need the image to have loaded
 
-}());
+})(document, window);
