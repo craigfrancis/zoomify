@@ -407,11 +407,11 @@
 
 						if (button.t === 'in') {
 							if (button.s === 'on') {
-								zoom_control_refs[name].onmousedown = image_zoom_in; // onclick on iPhone seems to have a more pronounced delay
+								addEventListener(zoom_control_refs[name], 'mousedown', image_zoom_in); // onclick on iPhone seems to have a more pronounced delay
 							}
 						} else {
 							if (button.s === 'on') {
-								zoom_control_refs[name].onmousedown = image_zoom_out;
+								addEventListener(zoom_control_refs[name], 'mousedown', image_zoom_out);
 							}
 						}
 
