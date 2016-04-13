@@ -1,0 +1,2 @@
+
+When creating the small versions, change the drop shadow on the + and - shapes to have a size of 1px (currently 2px).

@@ -584,7 +584,7 @@
 					div_ref.className = div_ref.className + ' js-active';
 
 				//--------------------------------------------------
-				// Add events
+				// Mouse / touch events
 
 					wheel = 'onwheel' in document.createElement('div') ? 'wheel' : // Modern browsers
 							document.onmousewheel !== undefined ? 'mousewheel' : // Webkit and IE support
@@ -593,7 +593,13 @@
 					addEventListener(div_ref, wheel, scroll_event);
 					addEventListener(div_ref, 'mousedown', image_event_start);
 					addEventListener(div_ref, 'touchstart', image_event_start);
-					addEventListener(document, 'keyup', keyboard_event);
+
+				//--------------------------------------------------
+				// Keyboard support
+
+					div_ref.tabIndex = '0';
+
+					addEventListener(div_ref, 'keyup', keyboard_event);
 
 			}
 
