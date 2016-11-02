@@ -419,8 +419,26 @@
 			//--------------------------------------------------
 			// Prevent default
 
-				if (e.type !== 'touchstart') { // On small touch screens, it is good to be able to use the grey background to scroll the page.
+					// On small touch screens, it is
+					// good to be able to use the grey
+					// background to scroll the page.
+
+				if (e.type !== 'touchstart') {
+
 					return preventDefault(e);
+
+				} else if (e.target == img_ref) {
+
+					return preventDefault(e); // The target is the image, so they are trying to move the image.
+
+				} else if (e.touches && e.touches.length > 1) {
+
+					return preventDefault(e); // 2 or more fingers, so they are trying to zoom.
+
+				} else {
+
+					return true;
+
 				}
 
 		}
