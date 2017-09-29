@@ -70,7 +70,10 @@
 			if (obj.removeEventListener) {
 				obj.removeEventListener(type, fn, false);
 			} else if (obj.detachEvent) {
-				obj.detachEvent('on'+type, obj[type+fn]);
+				try {
+					obj.detachEvent('on'+type, obj[type+fn]); // IE7 does not like "touchmove"
+				} catch(e) {
+				}
 			} else {
 				obj['on'+type] = null;
 			}
