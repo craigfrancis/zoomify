@@ -207,10 +207,10 @@
 				img_current_width  = new_width;
 				img_current_height = new_height;
 
-				img_ref.width      = img_current_width;
-				img_ref.height     = img_current_height;
-				img_ref.style.left = img_current_left + 'px';
-				img_ref.style.top  = img_current_top + 'px';
+				img_ref.style.width  = img_current_width + 'px'; // Canvas element will reset any bitmap data img_ref.width
+				img_ref.style.height = img_current_height + 'px';
+				img_ref.style.left   = img_current_left + 'px';
+				img_ref.style.top    = img_current_top + 'px';
 
 			//--------------------------------------------------
 			// Success
