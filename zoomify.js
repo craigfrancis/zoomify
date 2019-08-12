@@ -579,6 +579,13 @@
 					width = img_original_width;
 					height = img_original_height;
 
+					img_current_width = null;
+					img_current_height = null;
+					img_current_left = null;
+					img_current_top = null;
+
+					zoom_limit = null;
+					zoom_levels = [];
 					zoom_levels[zoom_levels.length] = Math.round(img_original_width * 1.75); // Oversize support
 					zoom_levels[zoom_levels.length] = width;
 
